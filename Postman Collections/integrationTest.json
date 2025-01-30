@@ -481,7 +481,7 @@
 								}
 							}
 						},
-						"url": "https://loyalty-upgrades.stage.aa.com/api/e500/auto-upgrade/checkin/pax"
+						"url": "{{akamai-url}}/api/e500/auto-upgrade/checkin/pax"
 					},
 					"response": [
 						{
