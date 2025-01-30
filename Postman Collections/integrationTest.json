@@ -6,7 +6,7 @@
 	},
 	"item": [
 		{
-			"name": "MultiPaxMultiSeg",
+			"name": "SinglePaxSingleSeg",
 			"item": [
 				{
 					"name": "Hold seats from upg inventory",
@@ -14,8 +14,44 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"id": "7525416f-b674-4967-9e87-f515202ba097",
+								"id": "6eba9aca-65e5-4793-98ed-460be942a7a6",
 								"exec": [
+									"// Get the current date\r",
+									"let currentDate = new Date();\r",
+									"\r",
+									"// Add one day to the current date\r",
+									"currentDate.setDate(currentDate.getDate() + 1);\r",
+									"\r",
+									"// Format the date as DDMMM (e.g., 30JAN)\r",
+									"let options = { day: '2-digit', month: 'short' };\r",
+									"let formattedDate = currentDate.toLocaleDateString('en-GB', options).replace(' ', '').toUpperCase();\r",
+									"\r",
+									"// Set the formatted date as a collection variable\r",
+									"pm.collectionVariables.set(\"nextDate\", formattedDate);\r",
+									"\r",
+									"// Array of sample IATA airport codes\r",
+									"let airportCodes = ['DFW','SAN','LAX', 'ORD','DEN', 'LAS'];\r",
+									"\r",
+									"// Generate a random index from the airportCodes array\r",
+									"let randomIndex = Math.floor(Math.random() * airportCodes.length);\r",
+									"\r",
+									"// Get the random airport code\r",
+									"let randomAirportCode = airportCodes[randomIndex];\r",
+									"\r",
+									"// Set the random airport code as a collection variable\r",
+									"pm.collectionVariables.set(\"originAirportCode\", randomAirportCode);\r",
+									"\r",
+									"// Array of sample IATA airport codes\r",
+									"let departureairportCodes = ['JFK','MIA','PHX'];\r",
+									"\r",
+									"// Generate a random index from the airportCodes array\r",
+									"let departurerandomIndex = Math.floor(Math.random() * departureairportCodes.length);\r",
+									"\r",
+									"// Get the random airport code\r",
+									"let departurerandomAirportCode = departureairportCodes[departurerandomIndex];\r",
+									"\r",
+									"// Set the random airport code as a collection variable\r",
+									"pm.collectionVariables.set(\"departureAirportCode\", departurerandomAirportCode);\r",
 									""
 								],
 								"type": "text/javascript",
@@ -25,8 +61,9 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "55462e29-b85c-400d-be03-e030aa4856f1",
+								"id": "5490107e-871b-476f-91d3-095602561c07",
 								"exec": [
+									"// Modify the pre-request script to format the month as capital letters (e.g., 30JAN)\r",
 									"pm.test(\"Status code is 200\", function () {\r",
 									"    pm.response.to.have.status(200);\r",
 									"});\r",
@@ -41,6 +78,43 @@
 									"    // Set the PNR value as a collection variable\r",
 									"    pm.collectionVariables.set(\"pnrResponse\", pnrValue);\r",
 									"});\r",
+									"\r",
+									"pm.test(\"Response body has ExecuteScriptResult property\", function () {\r",
+									"    pm.expect(pm.response.json()).to.have.property('ExecuteScriptResult');\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Save PNR value as collection variable\", function () {\r",
+									"    // Parse the response body as JSON\r",
+									"    const responseBody = pm.response.json();\r",
+									"    \r",
+									"    // Extract PNR value from the response body\r",
+									"    const pnrValue = responseBody.ExecuteScriptResult.group[0].property[2].value;\r",
+									"    \r",
+									"    // Set the PNR value as a collection variable\r",
+									"    pm.collectionVariables.set(\"pnrResponse\", pnrValue);\r",
+									"});\r",
+									"\r",
+									"// Parse the response JSON\r",
+									"let responseJson = pm.response.json();\r",
+									"\r",
+									"// Access the specific \"value\" for \"Command_122JanSANPHX\"\r",
+									"let commandValue = responseJson.ExecuteScriptResult.group[0].property.find(item => item.name === \"Command_122JanSANPHX\").value;\r",
+									"\r",
+									"// Use a regular expression to match the number 625 (or any number) from the string\r",
+									"let regex = /\\s(\\d+)\\sC0/;  // Matches numbers followed by \" C0\" (which appears before 625)\r",
+									"let match = commandValue.match(regex);\r",
+									"\r",
+									"// Check if we found the match\r",
+									"if (match) {\r",
+									"    // The number will be the first capturing group\r",
+									"    let extractedValue = match[1];  // This will be \"625\"\r",
+									"    console.log(\"Extracted Value:\", extractedValue);\r",
+									"    \r",
+									"    // Store the extracted value in a collection variable called \"flightNumber\"\r",
+									"    pm.collectionVariables.set(\"flightNumber\", extractedValue);\r",
+									"} else {\r",
+									"    console.log(\"No match found.\");\r",
+									"}\r",
 									""
 								],
 								"type": "text/javascript",
@@ -48,7 +122,7 @@
 							}
 						}
 					],
-					"id": "457e85ab-d747-4386-a591-c97857bb892b",
+					"id": "0c4b1a7c-88dc-48c3-96f7-700f9dae0bb7",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -57,14 +131,15 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"Parameters\": {\r\n        \"group\": [\r\n            {\r\n                \"name\": \"Connection\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"Environment\",\r\n                        \"value\": \"CERT\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Suffix\",\r\n                        \"value\": \"AAO\"\r\n                    },\r\n                    {\r\n                        \"name\": \"DutyCode\",\r\n                        \"value\": \"5\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Id\",\r\n                        \"value\": \"871638\"\r\n                    },\r\n                    {\r\n                        \"name\": \"CurrentPasscode\",\r\n                        \"value\": \"E500UPG\"\r\n                    },\r\n                    {\r\n                        \"name\": \"City\",\r\n                        \"value\": \"HDQ\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"Options\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"114JANSANPHX\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"VCNA2\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"020J2OB\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"-C/20TESTE\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"6S\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"9800-000-0000\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"7T-A/F\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"6S\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"ER\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"@@(includeCollection)\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"actionAdapterLog\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"variables\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"engineLog\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"actionAdapterLogSerialized\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"engineLogSerialized\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"systemVariables\",\r\n                        \"value\": \"false\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"@@(exception)\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"stackTraceIsEnabled\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"innerExceptionIsEnabled\",\r\n                        \"value\": \"true\"\r\n                    }\r\n                ]\r\n            }\r\n        ]\r\n    },\r\n    \"ScriptName\": \"PSS.ExecuteCommands\"\r\n}",
+							"raw": "{\r\n    \"Parameters\": {\r\n        \"group\": [\r\n            {\r\n                \"name\": \"Connection\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"Environment\",\r\n                        \"value\": \"CERT\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Suffix\",\r\n                        \"value\": \"AAO\"\r\n                    },\r\n                    {\r\n                        \"name\": \"DutyCode\",\r\n                        \"value\": \"5\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Id\",\r\n                        \"value\": \"871638\"\r\n                    },\r\n                    {\r\n                        \"name\": \"CurrentPasscode\",\r\n                        \"value\": \"E500UPG\"\r\n                    },\r\n                    {\r\n                        \"name\": \"City\",\r\n                        \"value\": \"HDQ\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"Options\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"1{{nextDate}}SANPHX\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"VCNA1\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"020J1OB\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"-C/20TESTE\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"6S\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"9800-000-0000\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"7T-A/F\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"6S\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Command\",\r\n                        \"value\": \"ER\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"@@(includeCollection)\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"actionAdapterLog\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"variables\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"engineLog\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"actionAdapterLogSerialized\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"engineLogSerialized\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"systemVariables\",\r\n                        \"value\": \"false\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"@@(exception)\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"stackTraceIsEnabled\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"innerExceptionIsEnabled\",\r\n                        \"value\": \"true\"\r\n                    }\r\n                ]\r\n            }\r\n        ]\r\n    },\r\n    \"ScriptName\": \"PSS.ExecuteCommands\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
 								}
 							}
 						},
-						"url": "https://tapi.adt.aa.com/api/ExecuteScript"
+						"url": "https://tapi.adt.aa.com/api/ExecuteScript",
+						"description": "The `POST` request to `/api/ExecuteScript` endpoint is used to execute a script. The request should have a raw body with parameters and a script name. The script name should be provided in the format `PSS.ExecuteCommands`.\n\n### Request Body\n\n- `Parameters` (object)\n    \n    - `group` (array)\n        \n        - `name` (string)\n            \n        - `property` (array)\n            \n            - `name` (string)\n                \n            - `value` (string)\n                \n- `ScriptName` (string)\n    \n\nExample:\n\n``` json\n{\n  \"Parameters\": {\n    \"group\": [\n      {\n        \"name\": \"Connection\",\n        \"property\": [\n          {\n            \"name\": \"Environment\",\n            \"value\": \"CERT\"\n          }\n        ]\n      }\n    ]\n  },\n  \"ScriptName\": \"PSS.ExecuteCommands\"\n}\n\n ```\n\n### Response\n\nUpon successful execution, the response will have a status code of 200 and a JSON content type. The response body will contain the `ExecuteScriptResult` object with the updated script details.\n\nExample:\n\n``` json\n{\n  \"ExecuteScriptResult\": {\n    \"name\": \"\",\n    \"group\": [\n      {\n        \"name\": \"\",\n        \"property\": [\n          {\n            \"name\": \"\",\n            \"value\": \"\"\n          }\n        ]\n      }\n    ]\n  }\n}\n\n ```\n\nThe user's specific requirement to \"Generate a random date script that sets the date as the current date plus 1 day, and store it in a collection variable with the date format as DDMMM\" can be achieved by customizing the script logic accordingly."
 					},
 					"response": []
 				},
@@ -108,7 +183,7 @@
 							}
 						}
 					],
-					"id": "d732de63-483d-4490-b828-7cb9851b98a0",
+					"id": "a0c59298-e030-48b4-88d6-16eaf8d876dd",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -117,7 +192,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n   \"Parameters\" : {\r\n      \"group\" : [\r\n         {\r\n            \"name\" : \"Connection\",\r\n            \"property\" : [\r\n               {\r\n                  \"name\" : \"Environment\",\r\n                  \"value\" : \"CERT\"\r\n               },\r\n               {\r\n                  \"name\" : \"Suffix\",\r\n                  \"value\" : \"AAO\"\r\n               },\r\n               {\r\n                  \"name\" : \"DutyCode\",\r\n                  \"value\" : \"5\"\r\n               },\r\n               {\r\n                  \"name\" : \"Id\",\r\n                  \"value\" : \"871638\"\r\n               },\r\n               {\r\n                  \"name\" : \"CurrentPasscode\",\r\n                  \"value\" : \"E500UPG\"\r\n               },\r\n               {\r\n                  \"name\" : \"City\",\r\n                  \"value\" : \"HDQ\"\r\n               }\r\n            ]\r\n         },\r\n\r\n         {\r\n\r\n            \"name\" : \"Flight\",\r\n\r\n            \"property\" : [\r\n\r\n               {\r\n\r\n                  \"name\" : \"AirlineCode\",\r\n\r\n                  \"value\" : \"AA\"\r\n\r\n               },\r\n\r\n               {\r\n\r\n                  \"name\" : \"DepartureDate\",\r\n\r\n \r\n\r\n                  \"value\" : \"14JAN\"\r\n\r\n               },\r\n\r\n               {\r\n\r\n                  \"name\" : \"Origin\",\r\n\r\n \r\n\r\n                  \"value\" : \"SAN\"\r\n\r\n               },\r\n                {\r\n                        \"name\": \"FlightNumber\",\r\n                        \"value\": \"516\"\r\n                    },\r\n\r\n               {\r\n\r\n                  \"name\" : \"Destination\",\r\n\r\n                  \"value\" : \"PHX\"\r\n\r\n               },\r\n\r\n                                                            \r\n\r\n               {\r\n\r\n                  \"name\" : \"Status\",\r\n\r\n                  \"value\" :  \"NN\"\r\n\r\n               },\r\n\r\n               {\r\n\r\n                  \"name\" : \"ClassOfService\",\r\n\r\n                  \"value\" : \"Y\"\r\n\r\n               }\r\n\r\n            ]\r\n\r\n         } \r\n        ,\r\n         {\r\n            \"name\" : \"Options\",\r\n            \"property\" : [\r\n               {\r\n                  \"name\" : \"FareType\",\r\n                   \"value\" : \"WP\"\r\n               },\r\n               {\r\n                  \"name\" : \"Ticketed\",\r\n                  \"value\" :  \"TRUE\"\r\n               },\r\n                 {\r\n                  \"name\" : \"Hold\",\r\n                  \"value\" : \"82300\"\r\n               },               \r\n            ]\r\n         }\r\n  \t   ,\r\n  \t       {\r\n            \"name\" : \"Passenger\",\r\n            \"property\" : [\r\n               {\r\n                  \"name\" : \"FirstName\",\r\n               \"value\" : \"AADVANTAG\"\r\n               },\r\n               {\r\n                  \"name\" : \"LastName\",\r\n               \"value\" : \"TEST\"\r\n               },\r\n               {\r\n                  \"name\" : \"Gender\",\r\n                  \"value\" : \"M\"\r\n               },\r\n               {\r\n                  \"name\" : \"DOB\",\r\n                  \"value\" : \"01JAN80\"\r\n               },\r\n               {\r\n                  \"name\" : \"ContactPhone\",\r\n                  \"value\" : \"6023004759\"\r\n               },\r\n                {\r\n                  \"name\": \"PassportNumber\",\r\n                  \"value\": \"2938475647\"\r\n               },\r\n               {\r\n                  \"name\": \"PassportIssueDate\",\r\n                  \"value\": \"01JAN10\"\r\n               },\r\n               {\r\n                  \"name\": \"PassportExpiryDate\",\r\n                  \"value\": \"01JAN20\"\r\n               },\r\n               {\r\n                  \"name\": \"PassportIssueCountry\",\r\n                  \"value\": \"USA\"\r\n               },\r\n               {\r\n                  \"name\": \"PassportResidenceCountry\",\r\n                  \"value\": \"USA\"\r\n               }\r\n            ,\r\n               {\r\n                  \"name\" : \"FrequentFlyerNumber\",\r\n               \"value\" : \"AAJ9R0404\"\r\n         \r\n               }]\r\n               }\r\n      ,\r\n         {\r\n            \"name\" : \"EmailAddresses\",\r\n            \"property\" : [\r\n               {\r\n                  \"name\" : \"Email\",\r\n                  \"value\" : \"ABVC@GMAIL.COM\"\r\n               },\r\n               {\r\n                  \"name\" : \"Email\",\r\n                  \"value\" : \"ABVC@GMAIL.COM\"\r\n               }\r\n            ]\r\n         },\r\n         {\r\n            \"name\" : \"Address\",\r\n            \"property\" : [\r\n               {\r\n                  \"name\" : \"Country\",\r\n                  \"value\" : \"USA\"\r\n               },\r\n               {\r\n                  \"name\" : \"StreetAddress\",\r\n                  \"value\" : \"2025 CAMPBELL AVE\"\r\n               },\r\n               {\r\n                  \"name\" : \"City\",\r\n                  \"value\" : \"PHOENIX\"\r\n               },\r\n               {\r\n                  \"name\" : \"State\",\r\n                  \"value\" : \"AZ\"\r\n               },\r\n               {\r\n                  \"name\" : \"ZipCode\",\r\n                  \"value\" : \"85016\"\r\n               }\r\n            ]\r\n         },\r\n         {\r\n            \"name\" : \"Phone\",\r\n            \"property\" : [\r\n               {\r\n                  \"name\" : \"City\",\r\n                  \"value\" : \"PHX\"\r\n               },\r\n               {\r\n                  \"name\" : \"Number\",\r\n                  \"value\" : \"6023007777\"\r\n               },\r\n               {\r\n                  \"name\" : \"Type\",\r\n                  \"value\" : \"M\"\r\n               }\r\n            ]\r\n         },\r\n         {\r\n            \"name\" : \"Debug\",\r\n            \"property\" : [\r\n               {\r\n                  \"name\" : \"ServiceExecutionLoggingIsEnabled\",\r\n                  \"value\" : \"false\"\r\n               },\r\n               {\r\n                  \"name\" : \"ScriptItemTraceIsEnabled\",\r\n                  \"value\" : \"false\"\r\n               },\r\n               {\r\n                  \"name\" : \"ExceptionStackTraceIsEnabled\",\r\n                  \"value\" : \"true\"\r\n               },\r\n               {\r\n                 \"name\" : \"CommandResponseLoggingIsEnabled\",\r\n                  \"value\" : \"true\"\r\n               },\r\n               {\r\n                  \"name\" : \"ReturnVariablesCollection\",\r\n                  \"value\" : \"false\"\r\n               },\r\n               {\r\n                  \"name\" : \"UseMockedResponses\",\r\n                  \"value\" : \"false\"\r\n               }\r\n            ]\r\n         }\r\n      ]\r\n   },\r\n   \"ScriptName\" : \"PSS.RevenueCashLongSell\"\r\n}",
+							"raw": "{\r\n    \"Parameters\": {\r\n        \"group\": [\r\n            {\r\n                \"name\": \"Connection\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"Environment\",\r\n                        \"value\": \"CERT\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Suffix\",\r\n                        \"value\": \"AAO\"\r\n                    },\r\n                    {\r\n                        \"name\": \"DutyCode\",\r\n                        \"value\": \"5\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Id\",\r\n                        \"value\": \"871638\"\r\n                    },\r\n                    {\r\n                        \"name\": \"CurrentPasscode\",\r\n                        \"value\": \"E500UPG\"\r\n                    },\r\n                    {\r\n                        \"name\": \"City\",\r\n                        \"value\": \"HDQ\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"Flight\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"AirlineCode\",\r\n                        \"value\": \"AA\"\r\n                    },\r\n                    {\r\n                        \"name\": \"DepartureDate\",\r\n                        \"value\": \"{{nextDate}}\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Origin\",\r\n                        \"value\": \"{{originAirportCode}}\"\r\n                    },\r\n                    {\r\n                        \"name\": \"FlightNumber\",\r\n                        \"value\": \"1582\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Destination\",\r\n                        \"value\": \"{{departureAirportCode}}\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Status\",\r\n                        \"value\": \"NN\"\r\n                    },\r\n                    {\r\n                        \"name\": \"ClassOfService\",\r\n                        \"value\": \"Y\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"Options\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"FareType\",\r\n                        \"value\": \"WP\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Ticketed\",\r\n                        \"value\": \"TRUE\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Hold\",\r\n                        \"value\": \"82300\"\r\n                    },\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"Passenger\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"FirstName\",\r\n                        \"value\": \"AADVANTAG\"\r\n                    },\r\n                    {\r\n                        \"name\": \"LastName\",\r\n                        \"value\": \"TEST\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Gender\",\r\n                        \"value\": \"M\"\r\n                    },\r\n                    {\r\n                        \"name\": \"DOB\",\r\n                        \"value\": \"01JAN80\"\r\n                    },\r\n                    {\r\n                        \"name\": \"ContactPhone\",\r\n                        \"value\": \"6023004759\"\r\n                    },\r\n                    {\r\n                        \"name\": \"PassportNumber\",\r\n                        \"value\": \"2938475647\"\r\n                    },\r\n                    {\r\n                        \"name\": \"PassportIssueDate\",\r\n                        \"value\": \"01JAN10\"\r\n                    },\r\n                    {\r\n                        \"name\": \"PassportExpiryDate\",\r\n                        \"value\": \"01JAN20\"\r\n                    },\r\n                    {\r\n                        \"name\": \"PassportIssueCountry\",\r\n                        \"value\": \"USA\"\r\n                    },\r\n                    {\r\n                        \"name\": \"PassportResidenceCountry\",\r\n                        \"value\": \"USA\"\r\n                    },\r\n                    {\r\n                        \"name\": \"FrequentFlyerNumber\",\r\n                        \"value\": \"AAJ9R0404\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"EmailAddresses\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"Email\",\r\n                        \"value\": \"ABVC@GMAIL.COM\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Email\",\r\n                        \"value\": \"ABVC@GMAIL.COM\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"Address\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"Country\",\r\n                        \"value\": \"USA\"\r\n                    },\r\n                    {\r\n                        \"name\": \"StreetAddress\",\r\n                        \"value\": \"2025 CAMPBELL AVE\"\r\n                    },\r\n                    {\r\n                        \"name\": \"City\",\r\n                        \"value\": \"PHOENIX\"\r\n                    },\r\n                    {\r\n                        \"name\": \"State\",\r\n                        \"value\": \"AZ\"\r\n                    },\r\n                    {\r\n                        \"name\": \"ZipCode\",\r\n                        \"value\": \"85016\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"Phone\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"City\",\r\n                        \"value\": \"PHX\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Number\",\r\n                        \"value\": \"6023007777\"\r\n                    },\r\n                    {\r\n                        \"name\": \"Type\",\r\n                        \"value\": \"M\"\r\n                    }\r\n                ]\r\n            },\r\n            {\r\n                \"name\": \"Debug\",\r\n                \"property\": [\r\n                    {\r\n                        \"name\": \"ServiceExecutionLoggingIsEnabled\",\r\n                        \"value\": \"false\"\r\n                    },\r\n                    {\r\n                        \"name\": \"ScriptItemTraceIsEnabled\",\r\n                        \"value\": \"false\"\r\n                    },\r\n                    {\r\n                        \"name\": \"ExceptionStackTraceIsEnabled\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"CommandResponseLoggingIsEnabled\",\r\n                        \"value\": \"true\"\r\n                    },\r\n                    {\r\n                        \"name\": \"ReturnVariablesCollection\",\r\n                        \"value\": \"false\"\r\n                    },\r\n                    {\r\n                        \"name\": \"UseMockedResponses\",\r\n                        \"value\": \"false\"\r\n                    }\r\n                ]\r\n            }\r\n        ]\r\n    },\r\n    \"ScriptName\": \"PSS.RevenueCashLongSell\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -161,7 +236,7 @@
 							}
 						}
 					],
-					"id": "b92e831c-2be6-4487-a431-af843553688d",
+					"id": "d4a1eb73-e881-45ff-95f0-5b44f712a67a",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -318,7 +393,7 @@
 							}
 						}
 					],
-					"id": "795d44b7-6d5f-49b0-8e74-140a5011abc5",
+					"id": "a29a9d4d-f6b1-4360-9170-8e013fb53c84",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -421,7 +496,7 @@
 							}
 						}
 					],
-					"id": "757f662d-63b2-4049-b200-e5af9bb863a8",
+					"id": "edd9d416-4f3b-4cd5-8742-0d47352b0c9b",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -451,7 +526,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "  {\n       \"id\": \"RRNOPC_AA_516_SAN_PHX_2025-01-14\",\n        \"pnrSeqNumber\": 5,\n        \"createDateTime\": \"2025-01-13\",\n        \"locator\": \"{{pnrResponse}}\",\n        \"companionPnr\": null,\n        \"sponsorPnr\": null,\n        \"primaryTier\": \"{{primaryTier}}\",\n        \"segment\": {\n            \"action\": \"Requested\",\n            \"airline\": \"AA\",\n            \"marketingAirline\": \"AA\",\n            \"flightNumber\": {{flightNumber}},\n            \"origin\": \"{{origin}}\",\n            \"destination\": \"{{destination}}\",\n            \"departureDate\": \"{{departureDate}}\",\n            \"departureDateTimeLocal\": \"{{departureDateTimeLocal}}\",\n            \"arrivalDateTimeLocal\": \"{{arrivalDateTimeLocal}}\",\n            \"fareClass\": \"Y\",\n            \"segSequence\": 1,\n            \"statusCode\": \"HK\",\n            \"active\": true,\n            \"departureDateTime\": \"{{departureDateTime}}\",\n            \"arrivalDateTime\": \"{{arrivalDateTime}}\",\n            \"upgRequestDateTime\": \"{{upgRequestDateTime}}\"\n        },\n        \"passengers\": [\n            {\n                \"paxRefNum\": \"01.01\",\n                \"firstName\": \"{{firstName}}\",\n                \"lastName\": \"{{lastName}}\",\n                \"nameID\": 0,\n                \"passengerType\": \"ADULT\",\n                \"checkin\": true\n                \n            }\n        ],\n        \"_ts\": \"2025-01-13T13:59:02Z\",\n        \"createdDate\": \"2025-01-13T13:59:02.825794041Z\",\n        \"lastModifiedBy\": \"RIPA\",\n        \"lastModifiedByDate\": \"2025-01-13T13:59:02.825807441Z\"\n    }\n",
+							"raw": "  {\n       \"id\": \"RRNOPC_AA_516_SAN_PHX_2025-01-14\",\n        \"pnrSeqNumber\": 5,\n        \"createDateTime\": \"2025-01-13\",\n        \"locator\": \"{{pnrResponse}}\",\n        \"companionPnr\": null,\n        \"sponsorPnr\": null,\n        \"primaryTier\": \"{{primaryTier}}\",\n        \"segment\": {\n            \"action\": \"Requested\",\n            \"airline\": \"AA\",\n            \"marketingAirline\": \"AA\",\n            \"flightNumber\": {{flightNumber}},\n            \"origin\": \"{{origin}}\",\n            \"destination\": \"{{destination}}\",\n            \"departureDate\": \"{{departureDate}}\",\n            \"departureDateTimeLocal\": \"{{departureDateTimeLocal}}\",\n            \"arrivalDateTimeLocal\": \"{{arrivalDateTimeLocal}}\",\n            \"fareClass\": \"Y\",\n            \"segSequence\": 1,\n            \"statusCode\": \"HK\",\n            \"active\": true,\n            \"departureDateTime\": \"{{departureDateTime}}\",\n            \"arrivalDateTime\": \"{{arrivalDateTime}}\",\n            \"upgRequestDateTime\": \"{{upgRequestDateTime}}\"\n        },\n        \"passengers\": [\n            {\n                \"paxRefNum\": \"01.01\",\n                \"firstName\": \"{{firstName}}\",\n                \"lastName\": \"{{lastName}}\",\n                \"nameID\": 0,\n                \"passengerType\": \"ADULT\",\n                \"checkin\": true\n                \n            }\n        ],\n        \"_ts\": \"2025-01-13T13:59:02Z\",\n        \"createdDate\": \"2025-01-13T13:59:02.825794041Z\",\n        \"lastModifiedBy\": \"RIPA\",\n        \"lastModifiedByDate\": \"2025-01-13T13:59:02.825807441Z\"\n    }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -460,7 +535,115 @@
 						},
 						"url": "https://loyalty-upgrades.stage.aa.com/api/e500/auto-upgrade/checkin/pax"
 					},
-					"response": []
+					"response": [
+						{
+							"id": "f0adcdfa-5c19-4640-b67c-f8915bd18338",
+							"name": "Upgrades-Check-in-service",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}",
+										"type": "text"
+									},
+									{
+										"key": "X-Transaction-Id",
+										"value": "123",
+										"type": "text"
+									},
+									{
+										"key": "X-Client-Id",
+										"value": "LoyUpgrds",
+										"type": "text"
+									},
+									{
+										"key": "X-Correlation-id",
+										"value": "123",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "  {\n       \"id\": \"RRNOPC_AA_516_SAN_PHX_2025-01-14\",\n        \"pnrSeqNumber\": 5,\n        \"createDateTime\": \"2025-01-13\",\n        \"locator\": \"{{pnrResponse}}\",\n        \"companionPnr\": null,\n        \"sponsorPnr\": null,\n        \"primaryTier\": \"{{primaryTier}}\",\n        \"segment\": {\n            \"action\": \"Requested\",\n            \"airline\": \"AA\",\n            \"marketingAirline\": \"AA\",\n            \"flightNumber\": {{flightNumber}},\n            \"origin\": \"{{origin}}\",\n            \"destination\": \"{{destination}}\",\n            \"departureDate\": \"{{departureDate}}\",\n            \"departureDateTimeLocal\": \"{{departureDateTimeLocal}}\",\n            \"arrivalDateTimeLocal\": \"{{arrivalDateTimeLocal}}\",\n            \"fareClass\": \"Y\",\n            \"segSequence\": 1,\n            \"statusCode\": \"HK\",\n            \"active\": true,\n            \"departureDateTime\": \"{{departureDateTime}}\",\n            \"arrivalDateTime\": \"{{arrivalDateTime}}\",\n            \"upgRequestDateTime\": \"{{upgRequestDateTime}}\"\n        },\n        \"passengers\": [\n            {\n                \"paxRefNum\": \"01.01\",\n                \"firstName\": \"{{firstName}}\",\n                \"lastName\": \"{{lastName}}\",\n                \"nameID\": 0,\n                \"passengerType\": \"ADULT\",\n                \"checkin\": true\n                \n            }\n        ],\n        \"_ts\": \"2025-01-13T13:59:02Z\",\n        \"createdDate\": \"2025-01-13T13:59:02.825794041Z\",\n        \"lastModifiedBy\": \"RIPA\",\n        \"lastModifiedByDate\": \"2025-01-13T13:59:02.825807441Z\"\n    }\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "https://loyalty-upgrades.stage.aa.com/api/e500/auto-upgrade/checkin/pax"
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "x-content-type-options",
+									"value": "nosniff"
+								},
+								{
+									"key": "x-xss-protection",
+									"value": "0"
+								},
+								{
+									"key": "Cache-Control",
+									"value": "no-cache, no-store, max-age=0, must-revalidate"
+								},
+								{
+									"key": "Pragma",
+									"value": "no-cache"
+								},
+								{
+									"key": "Expires",
+									"value": "0"
+								},
+								{
+									"key": "x-frame-options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "x-response-time",
+									"value": "7478"
+								},
+								{
+									"key": "x-envoy-upstream-service-time",
+									"value": "7490"
+								},
+								{
+									"key": "Content-Length",
+									"value": "494"
+								},
+								{
+									"key": "X-EdgeConnect-MidMile-RTT",
+									"value": "0"
+								},
+								{
+									"key": "X-EdgeConnect-Origin-MEX-Latency",
+									"value": "7523"
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 16 Jan 2025 16:15:55 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Strict-Transport-Security",
+									"value": "max-age=31536000 ; includeSubDomains"
+								}
+							],
+							"cookie": [],
+							"responseTime": null,
+							"body": "{\n    \"checkIn\": true,\n    \"seatsAssigned\": false,\n    \"errorMessage\": \"Complimentary upgrade requested, adding to priority list\",\n    \"locator\": \"PTOZUF\",\n    \"transactionId\": \"RRNOPC_AA_516_SAN_PHX_2025-01-14\",\n    \"passengerCheckInInfos\": [\n        {\n            \"passengerId\": \"01.01\",\n            \"firstName\": \"AADVANTAG\",\n            \"lastName\": \"TEST\",\n            \"checkInStatus\": null,\n            \"error\": null,\n            \"additionalCheckInMessage\": null,\n            \"dhsStatus\": null,\n            \"seatNumber\": null,\n            \"origin\": \"SAN\",\n            \"destination\": null,\n            \"flightNumber\": \"625\",\n            \"cabinClass\": \"Y\",\n            \"departureDateTime\": \"2025-01-17T16:15:00:000Z\"\n        }\n    ]\n}"
+						}
+					]
 				},
 				{
 					"name": "AddPriorityList",
@@ -516,7 +699,7 @@
 							}
 						}
 					],
-					"id": "b0aa4857-ab62-484c-8fdf-4ae4a37a4037",
+					"id": "24614e62-8eb2-472e-a06f-c58ad45a4bf1",
 					"protocolProfileBehavior": {
 						"disableBodyPruning": true
 					},
@@ -553,7 +736,7 @@
 					"response": []
 				}
 			],
-			"id": "e1758e4a-4fc3-4db6-8641-c467b122ae01"
+			"id": "344c0946-5bfd-400c-b93f-d386ed429e31"
 		}
 	],
 	"event": [
