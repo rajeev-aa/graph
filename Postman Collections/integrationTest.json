@@ -369,7 +369,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{akamai-url}}/api/e500/auto-upgrade/?pnr={{pnrResponse}}",
+							"raw": "{{akamai-url}}/api/e500/auto-upgrade/?pnr=QOSBBS",
 							"host": [
 								"{{akamai-url}}"
 							],
@@ -382,7 +382,7 @@
 							"query": [
 								{
 									"key": "pnr",
-									"value": "{{pnrResponse}}"
+									"value": "QOSBBS"
 								}
 							]
 						}
@@ -474,7 +474,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"id\": \"RRNOPC_AA_516_SAN_PHX_2025-01-14\",\n    \"pnrSeqNumber\": 5,\n    \"createDateTime\": \"2025-01-13\",\n    \"locator\": \"{{pnrResponse}}\",\n    \"companionPnr\": null,\n    \"sponsorPnr\": null,\n    \"primaryTier\": \"{{primaryTier}}\",\n    \"segment\": {\n        \"action\": \"Requested\",\n        \"airline\": \"AA\",\n        \"marketingAirline\": \"AA\",\n        \"flightNumber\": {{flightNumber}},\n        \"origin\": \"{{origin}}\",\n        \"destination\": \"{{destination}}\",\n        \"departureDate\": \"{{departureDate}}\",\n        \"departureDateTimeLocal\": \"{{departureDateTimeLocal}}\",\n        \"arrivalDateTimeLocal\": \"{{arrivalDateTimeLocal}}\",\n        \"fareClass\": \"Y\",\n        \"segSequence\": 1,\n        \"statusCode\": \"HK\",\n        \"active\": true,\n        \"departureDateTime\": \"{{departureDateTime}}\",\n        \"arrivalDateTime\": \"{{arrivalDateTime}}\",\n        \"upgRequestDateTime\": \"{{upgRequestDateTime}}\"\n    },\n    \"passengers\": [\n        {\n            \"paxRefNum\": \"01.01\",\n            \"firstName\": \"{{firstName}}\",\n            \"lastName\": \"{{lastName}}\",\n            \"nameID\": 0,\n            \"passengerType\": \"ADULT\",\n            \"checkin\": true\n        }\n    ],\n    \"_ts\": \"2025-01-13T13:59:02Z\",\n    \"createdDate\": \"2025-01-13T13:59:02.825794041Z\",\n    \"lastModifiedBy\": \"RIPA\",\n    \"lastModifiedByDate\": \"2025-01-13T13:59:02.825807441Z\"\n}",
+							"raw": "{\n    \"id\": \"RRNOPC_AA_516_SAN_PHX_2025-01-14\",\n    \"pnrSeqNumber\": 5,\n    \"createDateTime\": \"2025-01-13\",\n    \"locator\": \"QOSBBS\",\n    \"companionPnr\": null,\n    \"sponsorPnr\": null,\n    \"primaryTier\": \"{{primaryTier}}\",\n    \"segment\": {\n        \"action\": \"Requested\",\n        \"airline\": \"AA\",\n        \"marketingAirline\": \"AA\",\n        \"flightNumber\": {{flightNumber}},\n        \"origin\": \"{{origin}}\",\n        \"destination\": \"{{destination}}\",\n        \"departureDate\": \"{{departureDate}}\",\n        \"departureDateTimeLocal\": \"{{departureDateTimeLocal}}\",\n        \"arrivalDateTimeLocal\": \"{{arrivalDateTimeLocal}}\",\n        \"fareClass\": \"Y\",\n        \"segSequence\": 1,\n        \"statusCode\": \"HK\",\n        \"active\": true,\n        \"departureDateTime\": \"{{departureDateTime}}\",\n        \"arrivalDateTime\": \"{{arrivalDateTime}}\",\n        \"upgRequestDateTime\": \"{{upgRequestDateTime}}\"\n    },\n    \"passengers\": [\n        {\n            \"paxRefNum\": \"01.01\",\n            \"firstName\": \"{{firstName}}\",\n            \"lastName\": \"{{lastName}}\",\n            \"nameID\": 0,\n            \"passengerType\": \"ADULT\",\n            \"checkin\": true\n        }\n    ],\n    \"_ts\": \"2025-01-13T13:59:02Z\",\n    \"createdDate\": \"2025-01-13T13:59:02.825794041Z\",\n    \"lastModifiedBy\": \"RIPA\",\n    \"lastModifiedByDate\": \"2025-01-13T13:59:02.825807441Z\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
